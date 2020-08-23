@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argoapp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argoapp
+  namespace: argoapp
+  labels:
+    app: argoapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: argoapp
+  template:
+    metadata:
+      labels:
+        app: argoapp
+    spec:
+      containers:
+      - name: echo
+        image: stevesloka/echo-server
+        command: ["echo-server"]
+        args:
+          - --echotext=This is a ARGO APPLICATION HOMEWORK
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: argoapp
+  labels:
+    app: argoapp
+  namespace: argoapp
+spec:
+  selector:
+    app: argoapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
