@@ -23,13 +23,14 @@ spec:
     spec:
       containers:
       - name: echo
-        image: stevesloka/echo-server
-        command: ["echo-server"]
-        args:
-          - --echotext=Testing Kubeseal sealed secret
+        image: nginx
+        #image: stevesloka/echo-server
+        #command: ["echo-server"]
+        #args:
+        #  - --echotext=Testing Kubeseal sealed secret
         imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 8080
+        #ports:
+        #- containerPort: 8080
         env:
         - name: MYSQL_ROOT_USER
           valueFrom:
