@@ -26,7 +26,7 @@ spec:
         image: stevesloka/echo-server
         command: ["echo-server"]
         args:
-          - --echotext=This is a ARGO APPLICATION HOMEWORK
+          - --echotext=Testing Kubeseal sealed secret
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
