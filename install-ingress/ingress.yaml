@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argoapps-ingress
+  namespace: argocd
+  annotations:
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+  labels:
+    app: argoapps
+spec:
+  ingressClassName: avi-lb
+  tls:
+  - hosts:
+      - argoapps.corp.internal
+    secretName: argoapps-cert-tls
+  rules:
+    - host: argoapps.corp.internal
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: argocd-server
+              port:
+                number: 80
