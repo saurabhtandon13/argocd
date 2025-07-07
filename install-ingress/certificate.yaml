@@ -4,10 +4,10 @@ metadata:
   name: argoapps-selfsigned-cert
 spec:
   isCA: true
-  commonName: argoapps.corp.internal
+  commonName: argoapps.cloudapps.corp.internal
   secretName: argoapps-cert-tls
   dnsNames:
-    - argoapps.corp.internal
+    - argoapps.cloudapps.corp.internal
   duration: 8760h
   renewBefore: 240h
   privateKey:

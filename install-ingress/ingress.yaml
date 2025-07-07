@@ -11,10 +11,10 @@ spec:
   ingressClassName: avi-lb
   tls:
   - hosts:
-      - argoapps.corp.internal
+      - argoapps.cloudapps.corp.internal
     secretName: argoapps-cert-tls
   rules:
-    - host: argoapps.corp.internal
+    - host: argoapps.cloudapps.corp.internal
       http:
         paths:
         - path: /
