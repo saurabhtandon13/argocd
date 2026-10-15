@@ -1,0 +1,124 @@
+#---
+## ---------------------------------------------------------------------------
+## cloudapps-selfsigned-issuer
+##
+## Self-signed cert-manager Issuer used as the trust root for internal
+## *.cloudapps.lvnlab.internal services (e.g. Hubble UI).
+## ---------------------------------------------------------------------------
+#apiVersion: cert-manager.io/v1
+#kind: Issuer
+#metadata:
+#  name: cloudapps-selfsigned-issuer
+#  namespace: kube-system
+#  labels:
+#    app.kubernetes.io/name: cloudapps-selfsigned-issuer
+#    app.kubernetes.io/part-of: cloudapps
+#    app.kubernetes.io/managed-by: platform-team
+#spec:
+#  selfSigned: {}
+#
+#---
+## ---------------------------------------------------------------------------
+## cloudapps-selfsigned-cert
+##
+## Wildcard server certificate for *.cloudapps.lvnlab.internal, consumed by
+## the shared-gateway Gateway's HTTPS listener.
+## ---------------------------------------------------------------------------
+#apiVersion: cert-manager.io/v1
+#kind: Certificate
+#metadata:
+#  name: cloudapps-selfsigned-cert
+#  namespace: kube-system
+#  labels:
+#    app.kubernetes.io/name: cloudapps-selfsigned-cert
+#    app.kubernetes.io/part-of: cloudapps
+#    app.kubernetes.io/managed-by: platform-team
+#spec:
+#  secretName: cloudapps-server-tls
+#  commonName: "*.cloudapps.vkslab.internal"
+#  dnsNames:
+#    - "*.cloudapps.vkslab.internal"
+#
+#  duration: 8760h     # 365d
+#  renewBefore: 240h   # 10d
+#
+#  privateKey:
+#    algorithm: ECDSA
+#    size: 256
+#    rotationPolicy: Always
+#
+#  usages:
+#    - server auth
+#    - digital signature
+#    - key encipherment
+#
+#  issuerRef:
+#    name: cloudapps-selfsigned-issuer
+#    kind: Issuer
+#    group: cert-manager.io
+#---
+## ---------------------------------------------------------------------------
+## shared-gateway
+##
+## Shared HTTPS entrypoint for all *.cloudapps.lvnlab.internal workloads.
+## TLS is terminated here using the certificate provisioned above.
+## ---------------------------------------------------------------------------
+#apiVersion: gateway.networking.k8s.io/v1
+#kind: Gateway
+#metadata:
+#  name: shared-gateway
+#  namespace: kube-system
+#  labels:
+#    app.kubernetes.io/name: shared-gateway
+#    app.kubernetes.io/part-of: cloudapps
+#    app.kubernetes.io/managed-by: platform-team
+#spec:
+#  # NOTE: confirm this matches your installed GatewayClass name.
+#  # Cilium's default GatewayClass is "cilium" unless you've created
+#  # a custom one named "cilium-gateway".
+#  gatewayClassName: cilium-gateway
+#
+#  listeners:
+#    - name: https
+#      port: 443
+#      protocol: HTTPS
+#      hostname: "*.cloudapps.vkslab.internal"
+#      tls:
+#        mode: Terminate
+#        certificateRefs:
+#          - kind: Secret
+#            name: cloudapps-server-tls
+#      allowedRoutes:
+#        namespaces:
+#          from: All
+#---
+## ---------------------------------------------------------------------------
+## hubble-httproute
+##
+## Routes hubble.cloudapps.lvnlab.internal traffic to the Hubble UI service.
+## ---------------------------------------------------------------------------
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: argocd-httproute
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-httproute
+    app.kubernetes.io/part-of: cloudapps
+    app.kubernetes.io/managed-by: platform-team
+spec:
+  parentRefs:
+    - name: shared-gateway
+      namespace: kube-system
+
+  hostnames:
+    - argocd.cloudapps.vkslab.internal
+
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: argocd-server
+          port: 80
